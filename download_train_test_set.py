@@ -7,6 +7,7 @@ from os.path import isfile
 from pickle import dump, load
 
 seed_data_download_file = 'seed_data.p'
+
 ### Download seed data since Riot is hella stingy
 ### Returns one big dataset
 def download_data():
