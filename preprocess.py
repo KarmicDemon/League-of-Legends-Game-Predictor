@@ -13,3 +13,10 @@ class Player(object):
         pass
 
     def __str__(self):
+        pass
+
+class Match(object):
+    def __init__(self, obj_match):
+        ### things to consider
+        ### timeline data ?
+        pass
