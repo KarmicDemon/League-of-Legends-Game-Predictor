@@ -28,8 +28,8 @@ def download_champion_shit():
             'api_key=' + _settings['riot_api_key']
         json_req = req.get(url).json()['data']
 
-        champion_to_int = { x : _['id'] for x, _ in json_req.items() }
-        int_to_champion = { idx : champ for champ, idx in \
+        champion_to_id = { x : _['id'] for x, _ in json_req.items() }
+        id_to_champion = { idx : champ for champ, idx in \
             champion_to_int.items() }
 
         dump(champion_to_int, open(champion_to_int_file, 'wb'))
@@ -79,6 +79,10 @@ def turn_data_to_process():
 
     print(ret)
 
+### retuns preprocess champs to match
+def turn_process_to_match():
+    
+
 if __name__ == '__main__':
     download_champion_shit()
-    #turn_data_to_process()
+    download_data()

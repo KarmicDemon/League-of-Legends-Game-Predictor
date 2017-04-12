@@ -9,5 +9,4 @@ class Player(object):
 
 class Match(object):
     def __init__(self, obj_match):
-        #self.player_1_1 = 
         pass
