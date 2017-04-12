@@ -1,12 +1,4 @@
 ### This file contains preprocessing methods
-class Game(object):
-    def __init__(self, obj_game):
-        ### from data object get teams, champions, summoners,
-        pass
-
-    def __str__(self):
-        pass
-
 class Player(object):
     def __init__(self, obj_player):
         ### from player object
@@ -17,6 +9,5 @@ class Player(object):
 
 class Match(object):
     def __init__(self, obj_match):
-        ### things to consider
-        ### timeline data ?
+        #self.player_1_1 = 
         pass

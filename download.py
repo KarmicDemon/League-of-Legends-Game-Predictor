@@ -4,13 +4,39 @@ import requests as req
 import pickle
 import toml
 
+from collections import OrderedDict
 from os.path import isfile
 from pickle import dump, load
+from preprocess import Match
 
 int_to_champion_file = 'int_to_champion.p'
 champion_to_int_file = 'champion_to_int.p'
 seed_data_download_file = 'seed_data.p'
 settings_toml = 'settings.toml'
+
+### returns int_to_champion, champion_to_int
+def download_champion_shit():
+    int_to_champion = None
+    champion_to_int = None
+
+    if isfile(int_to_champion_file) and isfile(champion_to_int_file):
+        int_to_champion = load(open(int_to_champion_file, 'rb'))
+        champion_to_int = load(open(champion_to_int_file, 'rb'))
+    else:
+        _settings = toml.load(settings_toml)
+        url = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?' + \
+            'api_key=' + _settings['riot_api_key']
+        json_req = req.get(url).json()['data']
+
+        champion_to_int = { x : _['id'] for x, _ in json_req.items() }
+        int_to_champion = { idx : champ for champ, idx in \
+            champion_to_int.items() }
+
+        dump(champion_to_int, open(champion_to_int_file, 'wb'))
+        dump(int_to_champion, open(int_to_champion_file, 'wb'))
+
+    print(OrderedDict(sorted(int_to_champion.items())))
+    return int_to_champion, champion_to_int
 
 ### Download seed data since Riot is hella stingy
 ### Returns one big dataset
@@ -38,27 +64,21 @@ def download_data():
         dump(data, open(seed_data_download_file, 'wb'))
         return data
 
-### returns int_to_champion, champion_to_int
-def download_champion_shit():
-    if isfile(int_to_champion_file) and isfile(champion_to_int_file):
-        return load(open(int_to_champion_file, 'rb')), \
-            load(open(champion_to_int_file, 'rb'))
-    else:
-        _settings = toml.load(settings_toml)
-        url = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?' + \
-            'api_key=' + _settings['riot_api_key']
-        json_req = req.get(url).json()['data']
+### returns new proccessed champs
+def turn_data_to_process():
+    data = download_data()
+    participants = [x['participants'] for x in data]
 
-        champions = [x for x, _ in json_req.items()]
-        champions = sorted(champions)
-        champion_to_int = { champ : idx for idx, champ in enumerate(champions) }
-        int_to_champion = { idx : champ for champ, idx in champion_to_int.items() }
+    ret = []
+    for p in participants:
+        _list = []
+        for p2 in p:
+            _list.append(((1 if p2['teamId'] == 200 else 0), \
+                p2['championId']))
+        ret.append(_list)
 
-        dump(champion_to_int, open(champion_to_int_file, 'wb'))
-        dump(int_to_champion, open(int_to_champion_file, 'wb'))
-
-        return int_to_champion, champion_to_int
-
+    print(ret)
 
 if __name__ == '__main__':
     download_champion_shit()
+    #turn_data_to_process()
