@@ -4,10 +4,8 @@ import requests as req
 import pickle
 import toml
 
-from collections import OrderedDict
 from os.path import isfile
 from pickle import dump, load
-from preprocess import Match
 
 int_to_champion_file = 'int_to_champion.p'
 champion_to_int_file = 'champion_to_int.p'
@@ -35,7 +33,6 @@ def download_champion_shit():
         dump(champion_to_int, open(champion_to_int_file, 'wb'))
         dump(int_to_champion, open(int_to_champion_file, 'wb'))
 
-    print(OrderedDict(sorted(int_to_champion.items())))
     return int_to_champion, champion_to_int
 
 ### Download seed data since Riot is hella stingy
@@ -64,24 +61,6 @@ def download_data():
         dump(data, open(seed_data_download_file, 'wb'))
         return data
 
-### returns new proccessed champs
-def turn_data_to_process():
-    data = download_data()
-    participants = [x['participants'] for x in data]
-
-    ret = []
-    for p in participants:
-        _list = []
-        for p2 in p:
-            _list.append(((1 if p2['teamId'] == 200 else 0), \
-                p2['championId']))
-        ret.append(_list)
-
-    print(ret)
-
-### retuns preprocess champs to match
-def turn_process_to_match():
-    
 
 if __name__ == '__main__':
     download_champion_shit()
