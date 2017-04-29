@@ -49,18 +49,22 @@ def turn_data_to_process():
     # return features, targets
     return BatchService(features, targets)
 
-
 ### create batch object
 def get_nn_x_y():
     return turn_data_to_process()
 
-
-
 class BatchService(object):
     def __init__(self, inputs, outputs):
-        self.data_inputs = inputs
-        self.data_outputs = outputs
-        self.num_examples = len(self.data_inputs)
+        whole_set_length = len(inputs)
+        test_set_length = whole_set_length // 5
+
+        self.data_inputs = inputs[:(whole_set_length - test_set_length)]
+        self.data_outputs = outputs[:(whole_set_length - test_set_length)]
+
+        self.test_inputs = inputs[-test_set_length:]
+        self.test_outputs = outputs[-test_set_length:]
+
+        self.num_examples = whole_set_length - test_set_length
 
         self.index = 0
 
@@ -77,8 +81,14 @@ class BatchService(object):
 
         x = np.array(self.data_inputs[start:end])
         y = np.array(self.data_outputs[start:end])
+        y = [[_, (1 - _)] for _ in y]
 
-        #y = np.transpose(y)
+        return x, y
+
+    def get_test(self):
+        x = np.array(self.test_inputs)
+        y = np.array(self.test_outputs)
+        y = [[_, (1 - _)] for _ in y]
 
         return x, y
 

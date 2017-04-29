@@ -9,35 +9,25 @@ nn_data = get_nn_x_y()
 #define hyperparamters
 batch_size = 200
 complexity = 25
-epochs = 10
-learning_rate = .01
+epochs = 50
+lr = .01
 num_feature_inputs = 268
 
 # create network
 _inputs = tf.placeholder(tf.float32, [None, num_feature_inputs],
     name = 'inputs')
-_labels = tf.placeholder(tf.float32, [200], name = 'labels')
+_labels = tf.placeholder(tf.float32, [None, 2], name = 'labels')
 
-biases = {
-    'layer_one' : tf.Variable(tf.random_normal([complexity])),
-    'layer_two' : tf.Variable(tf.random_normal([1]))
-}
-
-weights = {
-    'layer_one' : tf.Variable(tf.random_normal([num_feature_inputs,
-        complexity])),
-    'layer_two' : tf.Variable(tf.random_normal([complexity, 1]))
-}
-
-## layer with sigmoid activation
-nn = tf.add(tf.matmul(_inputs, weights['layer_one']), biases['layer_one'])
+# define layers
+nn = tf.contrib.layers.fully_connected(_inputs, num_outputs = complexity)
+nn = tf.contrib.layers.fully_connected(nn, num_outputs = 2)
 nn = tf.nn.relu(nn)
-nn = tf.add(tf.matmul(nn, weights['layer_two']), biases['layer_two'])
-nn = tf.nn.sigmoid(nn)
 
-cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = nn,
+loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = nn,
     labels = _labels))
-optimizer = tf.train.AdamOptimizer(learning_rate = learning_rate).minimize(cost)
+optimizer = tf.train.AdamOptimizer(learning_rate = lr).minimize(loss)
+corr = tf.equal(tf.argmax(nn, 1), tf.argmax(_labels, 1))
+accu = tf.reduce_mean(tf.cast(corr, tf.float32))
 
 init = tf.global_variables_initializer()
 
@@ -45,17 +35,24 @@ with tf.Session() as s:
     s.run(init)
 
     for e in range(1, epochs + 1):
-        _cost = 0
-        for i in range(nn_data.num_examples // batch_size):
+        _loss = 0
+        num_batches = nn_data.num_examples // batch_size
+
+        for i in range(num_batches):
             _x, _y = nn_data.get_batch(batch_size)
 
-            _, c = s.run([optimizer, cost], feed_dict = {
+            c, _  = s.run([loss, optimizer], feed_dict = {
                 _inputs : _x,
-                _labels : _y
+                _labels : np.array(_y)
             })
 
-            _cost += c / total_batch
+            _loss += (c / num_batches)
 
-        print('Epoch:', epoch + 1, '| average cost =', '.04f' % avg_cost)
+        acc = s.run(accu, feed_dict = {
+            _inputs : nn_data.get_test()[0],
+            _labels : nn_data.get_test()[1]
+        })
+
+        print('Epoch:', e, '| Average loss =', _loss, 'Accuracy =', acc)
 
     print('Done')
